@@ -5,7 +5,7 @@ from .views import (
     GetAgentLinkView, SimulateConversationView, SimulateConversationStreamView,
     ListConversationsView,GetConversationView,DeleteConversationView,GetConversationAudioView,
     CreateConversationFeedbackView,ListToolsView,GetToolView,CreateClientToolView,UpdateClientToolView,
-    DeleteToolView
+    DeleteToolView,GetToolDependentAgentsView
 
 )   
 
