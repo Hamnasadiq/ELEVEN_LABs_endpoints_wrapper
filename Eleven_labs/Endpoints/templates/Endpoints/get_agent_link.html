@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Get Agent Link</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #b2fefa, #0ed2f7);
+      padding: 40px;
+      text-align: center;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #0077b6;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #023e8a;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>Get Agent Link</h2>
+  <div class="form-box">
+    <form id="get-agent-link-form">
+      <input type="text" id="agent_id" placeholder="Enter Agent ID" required />
+      <button type="submit">Fetch Agent Link</button>
+    </form>
+    <div id="get-agent-link-response" class="response-box"></div>
+  </div>
+
+<script>
+  document.getElementById("get-agent-link-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const agentId = document.getElementById("agent_id").value;
+    const outputBox = document.getElementById("get-agent-link-response");
+    outputBox.innerHTML = "Fetching agent link...";
+
+    fetch(`/api/agents/link/${agentId}/`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.link) {
+          outputBox.innerHTML = `
+            <strong>Agent Link Fetched:</strong><br><br>
+            <a href="${data.link}" target="_blank">${data.link}</a>
+          `;
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "<strong>Unexpected response format.</strong>";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${err.message}`;
+      });
+  });
+</script>
+</body>
+</html>

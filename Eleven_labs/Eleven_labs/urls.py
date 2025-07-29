@@ -16,9 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from Endpoints.views import CreateAgentView 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/agents/', include('Endpoints.urls')),
+    path('', include('Endpoints.urls')),  # assuming your app is called `elevenlabs`
+    path('users/',include('users.urls')),
+   
    
 ]

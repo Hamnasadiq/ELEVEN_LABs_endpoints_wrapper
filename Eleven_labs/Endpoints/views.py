@@ -7,17 +7,39 @@ from elevenlabs import ConversationalConfig, ElevenLabs  # ✅ fixed name
 from elevenlabs import AgentConfig, ConversationSimulationSpecification
 from django.http import HttpResponse
 import requests
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from elevenlabs.conversational_ai.schemas import SimulatedUserConfig
+import traceback
 from elevenlabs import (
     ArrayJsonSchemaPropertyInput,
     ToolRequestModel,
     ToolRequestModelToolConfig_Client,
 )
+import json
 
+# dashboard
+
+def dashboard(request):
+    return render(request, 'Endpoints/dashboard.html')
+
+def agents_page(request):
+    return render(request, 'Endpoints/agents.html')
+
+def conversations_page(request):
+    return render(request, 'Endpoints/conversations.html')
+
+def tools_page(request):
+    return render(request, 'Endpoints/tools.html')
+
+#....................................................................................................................
 class CreateAgentView(APIView):
 
     def post(self, request):
         try:
             agent_name = request.data.get("agent_name")
+            
 
             api_key = settings.ELEVENLABS_API_KEY
             if not api_key:
@@ -29,13 +51,18 @@ class CreateAgentView(APIView):
                 conversation_config=ConversationalConfig(),  # ✅ now correct
                 name=agent_name,
             )
+            print(response.agent_id)
 
             print("Agent created successfully:", response)  
-            return Response({"result": response}, status=201)
+            return Response({"result": response.agent_id}, status=201)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
+
+@login_required
+def create_agent_ui(request):
+    return render(request, 'endpoints/create_agent.html')
 class GetAgentView(APIView):
     def get(self, request, agent_id):
         try:
@@ -54,6 +81,10 @@ class GetAgentView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
+@login_required
+def get_agent_ui(request):
+    return render(request, 'endpoints/get_agent.html')
+
 
 
 class ListAgentsView(APIView):
@@ -61,18 +92,29 @@ class ListAgentsView(APIView):
         try:
             api_key = settings.ELEVENLABS_API_KEY
             if not api_key:
-                return Response({"error": "Missing API key in settings."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Missing API key in settings."}, status=400)
 
             client = ElevenLabs(api_key=api_key)
-
             response = client.conversational_ai.agents.list()
 
-            print("List of agents:", response)  # ✅ Print for debugging
+            agents_data = [
+                {
+                    "agent_id": agent.agent_id,
+                    "name": agent.name
+                }
+                for agent in response.agents
+            ]
 
-            return Response({"agents": response}, status=status.HTTP_200_OK)
+            return Response({"result": agents_data}, status=200)
 
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": str(e)}, status=500)
+
+
+@login_required
+def list_agents_ui(request):
+    return render(request, 'endpoints/list_agents.html')
+
 
 class UpdateAgentView(APIView):
     def patch(self, request, agent_id):
@@ -83,20 +125,24 @@ class UpdateAgentView(APIView):
 
             client = ElevenLabs(api_key=api_key)
 
-            # Example: Getting 'name' from request data
             name = request.data.get("name")
 
             response = client.conversational_ai.agents.update(
                 agent_id=agent_id,
-                name=name,  # 🔁 add more fields if needed
+                name=name,
             )
 
-            print("Agent updated:", response)  # For debugging
-
-            return Response({"result": response}, status=200)
+            return Response({"result": {
+                "agent_id": response.agent_id,
+                "name": response.name
+            }}, status=200)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+@login_required
+def update_agent_ui(request):
+    return render(request, 'endpoints/update_agent.html')
+
         
 
 class DeleteAgentView(APIView):
@@ -116,25 +162,11 @@ class DeleteAgentView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+@login_required
+def delete_agent_ui(request):
+    return render(request, 'endpoints/delete_agent.html')
 
 
-class DuplicateAgentView(APIView):
-    def post(self, request, agent_id):
-        try:
-            api_key = settings.ELEVENLABS_API_KEY
-            if not api_key:
-                return Response({"error": "Missing API key in settings."}, status=status.HTTP_400_BAD_REQUEST)
-
-            client = ElevenLabs(api_key=api_key)
-
-            response = client.conversational_ai.agents.duplicate(agent_id=agent_id)
-
-            print("Agent duplicated:", response)  # ✅ For debugging
-
-            return Response({"result": response}, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class GetAgentLinkView(APIView):
@@ -150,11 +182,31 @@ class GetAgentLinkView(APIView):
 
             print("Agent link fetched:", response)  # ✅ Debug print
 
-            return Response({"link": response}, status=status.HTTP_200_OK)
+            return Response({"link": str(response)}, status=status.HTTP_200_OK)  # Ensure it's JSON-serializable
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+@login_required   
+def get_agent_link_ui(request):
+    return render(request, 'endpoints/get_agent_link.html')
+
+class DuplicateAgentView(APIView):
+    def post(self, request, agent_id):
+        try:
+            # Simulated duplication logic
+            duplicated_agent = {
+                "id": "new_" + agent_id,
+                "original_agent": agent_id,
+                "message": "Agent duplicated successfully."
+            }
+            return Response(duplicated_agent, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+@login_required
+def duplicate_agent_ui(request):
+    return render(request, 'endpoints/duplicate_agent.html')
+
+
 
 
 
@@ -172,7 +224,7 @@ class SimulateConversationView(APIView):
             client = ElevenLabs(api_key=api_key)
 
             simulation_spec = ConversationSimulationSpecification(
-                simulated_user_config=AgentConfig(
+                simulated_user_config=SimulatedUserConfig(
                     first_message=first_message,
                     language=language,
                 )
@@ -188,7 +240,13 @@ class SimulateConversationView(APIView):
             return Response({"result": response}, status=status.HTTP_200_OK)
 
         except Exception as e:
+            traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@login_required
+def simulate_conversation_ui(request):
+    return render(request, 'endpoints/simulate_conversation.html')
 
 
 
@@ -429,3 +487,14 @@ class GetToolDependentAgentsView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+        
+
+
+
+
+
+
+
+
+
+

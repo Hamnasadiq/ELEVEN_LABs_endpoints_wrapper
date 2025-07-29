@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Duplicate Agent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3dcff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #752a9e;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #5e2181;
+        }
+
+        .response {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 250px;
+            overflow-wrap: break-word;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Duplicate Agent</h2>
+        <input type="text" id="agent_id_input" placeholder="Enter Agent ID">
+        <button onclick="duplicateAgent()">Duplicate</button>
+        <div id="result" class="response" style="display: none;"></div>
+    </div>
+
+    <script>
+        function duplicateAgent() {
+            const agentId = document.getElementById('agent_id_input').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerText = "Processing...";
+
+            fetch(`/api/agents/${agentId}/duplicate/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to duplicate agent");
+                }
+                return response.json();
+            })
+            .then(data => {
+                resultDiv.classList.remove('error');
+                resultDiv.classList.add('success');
+                resultDiv.innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                resultDiv.classList.remove('success');
+                resultDiv.classList.add('error');
+                resultDiv.innerText = "Error:\n" + error.message;
+            });
+        }
+
+        function getCSRFToken() {
+            const cookie = document.cookie
+                .split(';')
+                .find(c => c.trim().startsWith('csrftoken='));
+            return cookie ? cookie.split('=')[1] : '';
+        }
+    </script>
+</body>
+</html>

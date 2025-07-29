@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>List Agents</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #d4b7f4, #b2d6f7);
+      padding: 40px;
+      text-align: center;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      background-color: #6200ea;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #4500b5;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>List Agents</h2>
+  <div class="form-box">
+    <button id="load-agents-btn">Load Agents</button>
+    <div id="list-agents-response" class="response-box"></div>
+  </div>
+
+<script>
+  document.getElementById("load-agents-btn").addEventListener("click", function () {
+    const outputBox = document.getElementById("list-agents-response");
+    outputBox.innerHTML = "Loading agents...";
+
+    fetch("/api/agents/list/", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.result) {
+        const agents = data.result;
+        let html = `<strong>Total Agents: ${agents.length}</strong><br><br>`;
+        agents.forEach(agent => {
+          html += `
+            <div style="margin-bottom: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+              <strong>Agent Name:</strong> ${agent.name}<br>
+              <strong>Agent ID:</strong> ${agent.agent_id}
+            </div>
+          `;
+        });
+        outputBox.innerHTML = html;
+      } else if (data.error) {
+        outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${data.error}`;
+      } else {
+        outputBox.innerHTML = "<strong>Unexpected response format.</strong>";
+      }
+    })
+    .catch(err => {
+      outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${err.message}`;
+    });
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  });
+</script>
+</body>
+</html>

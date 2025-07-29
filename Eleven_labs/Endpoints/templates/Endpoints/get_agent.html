@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Get Agent</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #eea7ee, #f6e8fa);
+    padding: 40px;
+    text-align: center;
+  }
+  .form-box {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    display: inline-block;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    max-width: 400px;
+  }
+  input, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+  button {
+    background-color: #5da6eb;
+    color: white;
+    cursor: pointer;
+  }
+  .response-box {
+    text-align: left;
+    background-color: #f3f3f3;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 16px;
+    color: #333;
+    white-space: pre-wrap;
+  }
+</style>
+
+</head>
+<body>
+  <h2>Get Agent by ID</h2>
+  <div class="form-box">
+    <form id="get-agent-form">
+      <input type="text" id="agent_id" placeholder="Enter Agent ID" required />
+      <button type="submit">Fetch Agent</button>
+    </form>
+    <div id="get-agent-response" class="response-box"></div>
+  </div>
+
+  <script>
+    document.getElementById("get-agent-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const agentId = document.getElementById("agent_id").value;
+      const outputBox = document.getElementById("get-agent-response");
+      outputBox.innerHTML = "Fetching agent...";
+
+      fetch(`/api/agents/${agentId}/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.result) {
+            outputBox.innerHTML = `
+<strong>Agent Fetched Successfully</strong><br><br>
+<pre>${JSON.stringify(data.result, null, 2)}</pre>`;
+          } else if (data.error) {
+            outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${data.error}`;
+          } else {
+            outputBox.innerHTML = "Unexpected response format.";
+          }
+        })
+        .catch(err => {
+          outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${err.message}`;
+        });
+    });
+  </script>
+</body>
+</html>

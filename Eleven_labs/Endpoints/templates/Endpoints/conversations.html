@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Conversation Endpoints</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #c3cfe2, #f5d0fe);
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4a007e;
+      font-size: 32px;
+      margin-top: 60px;
+      margin-bottom: 30px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 60px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 30px 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #5a189a;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .card:hover {
+      background-color: #7b2cbf;
+      color: #fff;
+      transform: translateY(-8px);
+      border-color: #9d4edd;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin: 40px auto 60px;
+      font-weight: bold;
+      color: #5a189a;
+      text-decoration: none;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+
+    .back-link:hover {
+      color: #9d4edd;
+    }
+  </style>
+</head>
+<body>
+  <h1>Conversation Endpoints</h1>
+
+  <div class="grid">
+    <a href="/api/agents/conversations/" class="card">List Conversations</a>
+    <a href="/api/agents/conversations/example-id/" class="card">Get Conversation</a>
+    <a href="/api/agents/conversations/example-id/delete/" class="card">Delete Conversation</a>
+    <a href="/api/agents/conversations/example-id/audio/" class="card">Get Conversation Audio</a>
+    <a href="/api/agents/conversations/example-id/feedback/" class="card">Create Feedback</a>
+  </div>
+
+  <a href="{% url 'dashboard' %}" class="back-link">⬅ Back to Dashboard</a>
+</body>
+</html>

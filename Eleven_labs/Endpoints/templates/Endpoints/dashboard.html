@@ -1,0 +1,41 @@
+{% extends "Endpoints/base.html" %}
+{% block title %}Dashboard - Eleven Labs{% endblock %}
+
+{% block content %}
+  <h1 style="text-align: center; color: #4a007e; font-size: 32px; margin-bottom: 40px;">Welcome to Your Control Panel</h1>
+  <div class="dashboard-container">
+    <a href="{% url 'agents-page' %}" class="card">Agents</a>
+    <a href="{% url 'conversations-page' %}" class="card">Conversations</a>
+    <a href="{% url 'tools-page' %}" class="card">Tools</a>
+  </div>
+
+  <style>
+    .dashboard-container {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: white;
+      width: 250px;
+      height: 180px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #5a189a;
+      text-decoration: none;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+    }
+  </style>
+{% endblock %}

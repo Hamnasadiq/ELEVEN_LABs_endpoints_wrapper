@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simulate Conversation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7ecff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 600px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #6b29a9;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #532184;
+    }
+
+    .response {
+      margin-top: 20px;
+      background-color: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: monospace;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Simulate Conversation</h2>
+    <input type="text" id="agent_id" placeholder="Enter Agent ID" required />
+    <input type="text" id="first_message" placeholder="First Message" value="Hello" />
+    <select id="language">
+      <option value="en">English (en)</option>
+      <option value="es">Spanish (es)</option>
+      <option value="fr">French (fr)</option>
+      <option value="de">German (de)</option>
+    </select>
+    <button onclick="simulateConversation()">Simulate</button>
+
+    <div id="result" class="response" style="display: none;"></div>
+  </div>
+
+  <script>
+    function simulateConversation() {
+      const agentId = document.getElementById('agent_id').value;
+      const firstMessage = document.getElementById('first_message').value;
+      const language = document.getElementById('language').value;
+      const resultDiv = document.getElementById('result');
+
+      resultDiv.style.display = 'block';
+      resultDiv.innerText = "Simulating conversation...";
+
+      fetch(`/api/agents/${agentId}/simulate/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({
+          first_message: firstMessage,
+          language: language
+        })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to simulate conversation");
+        return response.json();
+      })
+      .then(data => {
+        if (data.result) {
+          resultDiv.innerText = JSON.stringify(data.result, null, 2);
+        } else if (data.error) {
+          resultDiv.innerText = "Error:\n" + data.error;
+        } else {
+          resultDiv.innerText = "Unexpected response format.";
+        }
+      })
+      .catch(error => {
+        resultDiv.innerText = "Error:\n" + error.message;
+      });
+    }
+
+    function getCSRFToken() {
+      const cookie = document.cookie
+        .split(';')
+        .find(c => c.trim().startsWith('csrftoken='));
+      return cookie ? cookie.split('=')[1] : '';
+    }
+  </script>
+</body>
+</html>

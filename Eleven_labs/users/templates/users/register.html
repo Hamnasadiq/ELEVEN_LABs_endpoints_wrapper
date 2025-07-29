@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - Eleven Labs</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e0c3fc, #8ec5fc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #fff;
+      padding: 40px 50px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 25px;
+      background: linear-gradient(90deg, #8e2de2, #4a00e0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    form p {
+      text-align: left;
+      margin: 0;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: #7b2cbf;
+      outline: none;
+    }
+
+    button {
+      background: linear-gradient(135deg, #7b2cbf, #f72585);
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #6a1ab4, #c9184a);
+    }
+
+    .login-link {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .login-link a {
+      color: #7b2cbf;
+      text-decoration: none;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    .errors {
+      text-align: left;
+      color: red;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Eleven Labs</h1>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="errors">
+          <ul style="padding-left: 18px;">
+            {% for field in form %}
+              {% for error in field.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      {{ form.as_p }}
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <div class="login-link">
+      Already have an account? <a href="{% url 'login' %}">Login here</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Eleven Labs{% endblock %}</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e0c3fc, #8ec5fc);
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background: linear-gradient(90deg, #7b2cbf, #9d4edd);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .navbar h2 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      margin-left: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: #f3e8ff;
+    }
+
+    .content {
+      padding: 60px 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <h2>Eleven Labs</h2>
+    <div class="nav-links">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'agents-page' %}">Agents</a>
+      <a href="{% url 'conversations-page' %}">Conversations</a>
+      <a href="{% url 'tools-page' %}">Tools</a>
+      <a href="{% url 'logout' %}">Logout</a>
+    </div>
+  </div>
+
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Update Agent</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #d4b7f4, #b2d6f7);
+      padding: 40px;
+      text-align: center;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #6200ea;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #4500b5;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>Update Agent</h2>
+  <div class="form-box">
+    <form id="update-agent-form">
+      <input type="text" id="agent_id" placeholder="Enter Agent ID" required />
+      <input type="text" id="new_name" placeholder="Enter New Name" required />
+      <button type="submit">Update Agent</button>
+    </form>
+    <div id="update-agent-response" class="response-box"></div>
+  </div>
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  document.getElementById("update-agent-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const agentId = document.getElementById("agent_id").value;
+    const newName = document.getElementById("new_name").value;
+    const outputBox = document.getElementById("update-agent-response");
+    outputBox.innerHTML = "Updating agent...";
+
+    fetch(`/api/agents/update/${agentId}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+      body: JSON.stringify({ name: newName })
+    })
+    .then(res => {
+      if (!res.ok) {
+        return res.text().then(txt => {
+          throw new Error(`Server error: ${txt.slice(0, 200)}`);
+        });
+      }
+      return res.json();
+    })
+    .then(data => {
+      if (data.result) {
+        outputBox.innerHTML = `
+          <strong>Agent Updated Successfully</strong><br><br>
+          <pre style="white-space: pre-wrap; text-align: left; background: #f3f3f3; padding: 10px; border-radius: 6px;">
+Agent ID: ${data.result.agent_id}
+Agent Name: ${data.result.name}
+          </pre>
+        `;
+      } else if (data.error) {
+        outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${data.error}`;
+      } else {
+        outputBox.innerHTML = "<strong>Unexpected response format.</strong>";
+      }
+    })
+    .catch(err => {
+      outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${err.message}`;
+    });
+  });
+</script>
+
+
+
+</body>
+</html>
