@@ -5,12 +5,11 @@ from rest_framework import status
 from elevenlabs import ElevenLabs
 from elevenlabs import ConversationalConfig, ElevenLabs  # ✅ fixed name
 from elevenlabs import AgentConfig, ConversationSimulationSpecification
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 import requests
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from elevenlabs.conversational_ai.schemas import SimulatedUserConfig
 import traceback
 from elevenlabs import (
     ArrayJsonSchemaPropertyInput,
@@ -18,6 +17,9 @@ from elevenlabs import (
     ToolRequestModelToolConfig_Client,
 )
 import json
+
+# ✅ Forward reference fix (no new import needed)
+ToolRequestModelToolConfig_Client.model_rebuild()
 
 # dashboard
 
@@ -217,25 +219,28 @@ class SimulateConversationView(APIView):
             if not api_key:
                 return Response({"error": "Missing API key in settings."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Extracting the first message and language from request body
+            # Get data from request
             first_message = request.data.get("first_message", "Hello")
             language = request.data.get("language", "en")
 
+            # Create client
             client = ElevenLabs(api_key=api_key)
 
+            # Build request
             simulation_spec = ConversationSimulationSpecification(
-                simulated_user_config=SimulatedUserConfig(
-                    first_message=first_message,
-                    language=language,
-                )
+                simulated_user_config={
+                    "first_message": first_message,
+                    "language": language,
+                }
             )
 
+            # Send request to ElevenLabs
             response = client.conversational_ai.agents.simulate_conversation(
                 agent_id=agent_id,
                 simulation_specification=simulation_spec
             )
 
-            print("Simulation response:", response)  # ✅ For debugging
+            print("Simulation response:", response)
 
             return Response({"result": response}, status=status.HTTP_200_OK)
 
@@ -263,49 +268,80 @@ class SimulateConversationStreamView(APIView):
             client = ElevenLabs(api_key=api_key)
 
             simulation_spec = ConversationSimulationSpecification(
-                simulated_user_config=AgentConfig(
-                    first_message=first_message,
-                    language=language,
-                )
+                simulated_user_config={
+                    "first_message": first_message,
+                    "language": language
+                }
             )
 
-            # Stream the chunks and collect them
+            print("SIMULATION SPEC:", simulation_spec.dict())
+            print("AGENT ID:", agent_id)
+
             stream = client.conversational_ai.agents.simulate_conversation_stream(
                 agent_id=agent_id,
                 simulation_specification=simulation_spec
             )
 
+            if stream is None:
+                return Response({"error": "Stream is None. Possible invalid agent_id or internal server error."}, status=502)
+
             collected_output = []
             for chunk in stream:
                 collected_output.append(chunk)
-                print("Chunk received:", chunk)
+                print("Chunk:", chunk)
 
             return Response({"streamed_response": collected_output}, status=status.HTTP_200_OK)
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+
+
+@login_required
+def simulate_conversation_stream_ui(request):
+    return render(request, 'endpoints/simulate_conversation_stream.html')
+
 
 #conversation endpoints
+
+
 class ListConversationsView(APIView):
     def get(self, request):
         try:
             api_key = settings.ELEVENLABS_API_KEY
             if not api_key:
-                return Response({"error": "Missing API key in settings."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Missing API key."}, status=status.HTTP_400_BAD_REQUEST)
 
             client = ElevenLabs(api_key=api_key)
-
             response = client.conversational_ai.conversations.list()
 
-            print("Conversations:", response)  # ✅ Debug
+            # Safely access the expected fields
+            conversations_data = []
+            for convo in response.conversations:
+                conversations_data.append({
+                    "agent_id": convo.agent_id,
+                    "conversation_id": convo.conversation_id,
+                    "start_time_unix_secs": convo.start_time_unix_secs,
+                    "call_duration_secs": convo.call_duration_secs,
+                    "message_count": convo.message_count,
+                    "status": convo.status,
+                    "call_successful": convo.call_successful,
+                    "agent_name": convo.agent_name,
+                    "transcript_summary": convo.transcript_summary,
+                    "call_summary_title": convo.call_summary_title,
+                })
 
-            return Response({"conversations": response}, status=status.HTTP_200_OK)
+            return Response({"conversations": conversations_data}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
 
+
+@login_required
+def list_conversations_ui(request):
+    return render(request, 'endpoints/list_conversations.html')
 
 class GetConversationView(APIView):
     def get(self, request, conversation_id):
@@ -315,15 +351,21 @@ class GetConversationView(APIView):
                 return Response({"error": "Missing API key."}, status=status.HTTP_400_BAD_REQUEST)
 
             client = ElevenLabs(api_key=api_key)
-
             conversation = client.conversational_ai.conversations.get(conversation_id=conversation_id)
 
-            print("Conversation:", conversation)  # ✅ For debugging
+            if hasattr(conversation, "model_dump"):
+                data = conversation.model_dump()
+            else:
+                data = conversation  # fallback
 
-            return Response({"conversation": conversation}, status=status.HTTP_200_OK)
+            return Response({"conversation": data}, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@login_required
+def get_conversation_ui(request):
+    return render(request, 'endpoints/get_conversation.html')
 
 class DeleteConversationView(APIView):
     def delete(self, request, conversation_id):
@@ -342,7 +384,9 @@ class DeleteConversationView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+@login_required
+def delete_conversation_ui(request):
+    return render(request, 'endpoints/delete_conversation.html')
 
 
 class GetConversationAudioView(APIView):
@@ -369,6 +413,11 @@ class GetConversationAudioView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+@login_required
+def get_conversation_audio_ui(request):
+    return render(request, 'endpoints/get_conversation_audio.html')
+
+
 
 class CreateConversationFeedbackView(APIView):
     def post(self, request, conversation_id):
@@ -389,27 +438,66 @@ class CreateConversationFeedbackView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
-        
+
+@login_required
+def create_feedback_ui(request):
+    return render(request, 'endpoints/create_feedback.html')
+
+
 
 #list tools
+
+
 class ListToolsView(APIView):
     def get(self, request):
         try:
             client = ElevenLabs(api_key=settings.ELEVENLABS_API_KEY)
-            tools = client.conversational_ai.tools.list()
-            return Response({"tools": tools}, status=200)
+            tools_response = client.conversational_ai.tools.list()
+
+            tools_data = []
+            for tool in tools_response.tools:
+                tools_data.append({
+                    "id": tool.id,
+                    "name": tool.tool_config.name,
+                    "description": tool.tool_config.description,
+                })
+
+            return Response({"tools": tools_data}, status=200)
+
         except Exception as e:
-            return Response({"error": str(e)}, status=500)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# ✅ UI page
+@login_required
+def list_tools_ui(request):
+    return render(request, 'endpoints/list_tools.html')
+
+
+
 class GetToolView(APIView):
     def get(self, request, tool_id):
         try:
             client = ElevenLabs(api_key=settings.ELEVENLABS_API_KEY)
             tool = client.conversational_ai.tools.get(tool_id=tool_id)
-            return Response({"tool": tool}, status=200)
+
+            tool_data = {
+                "tool_id": getattr(tool, "tool_id", "N/A"),
+                "name": getattr(tool, "name", "N/A"),
+                "description": getattr(tool, "description", "N/A"),
+                "expects_response": getattr(tool, "expects_response", False),
+            }
+
+            return Response({"tool": tool_data}, status=200)
+
         except Exception as e:
             return Response({"error": str(e)}, status=500)
-        
-ToolRequestModelToolConfig_Client.model_rebuild()
+# UI view
+@login_required
+def get_tool_ui(request):
+    return render(request, 'endpoints/get_tool.html')
+
+
+
 
 class CreateClientToolView(APIView):
     def post(self, request):
@@ -437,6 +525,11 @@ class CreateClientToolView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+        
+@login_required
+def create_client_tool_ui(request):
+    return render(request, 'endpoints/create_client_tool.html')
         
 class UpdateClientToolView(APIView):
     def put(self, request, tool_id):
@@ -465,6 +558,12 @@ class UpdateClientToolView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+@login_required
+def update_client_tool_ui(request):
+    return render(request, 'endpoints/update_client_tool.html')
+
+
+
 class DeleteToolView(APIView):
     def delete(self, request, tool_id):
         try:
@@ -476,6 +575,10 @@ class DeleteToolView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+@login_required
+def delete_tool_ui(request):
+    return render(request, 'endpoints/delete_tool.html')
+
 class GetToolDependentAgentsView(APIView):
     def get(self, request, tool_id):
         try:
@@ -489,6 +592,9 @@ class GetToolDependentAgentsView(APIView):
             return Response({"error": str(e)}, status=500)
         
 
+@login_required
+def get_tool_dependent_agents_ui(request):
+    return render(request, 'endpoints/get_tool_dependent_agents.html')
 
 
 

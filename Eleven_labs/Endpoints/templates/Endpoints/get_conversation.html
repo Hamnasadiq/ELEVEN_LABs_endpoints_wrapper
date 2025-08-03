@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Get Conversation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+      padding: 40px;
+      text-align: center;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      background-color: #f85f73;
+      color: white;
+      cursor: pointer;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>Get Conversation</h2>
+  <div class="form-box">
+    <input type="text" id="conversation-id" placeholder="Enter Conversation ID" />
+    <button onclick="getConversation()">Get Conversation</button>
+    <div id="get-convo-response" class="response-box"></div>
+  </div>
+
+  <script>
+    function getConversation() {
+      const convoId = document.getElementById("conversation-id").value.trim();
+      const outputBox = document.getElementById("get-convo-response");
+      if (!convoId) {
+        outputBox.innerHTML = "<strong>Please enter a Conversation ID.</strong>";
+        return;
+      }
+
+      outputBox.innerHTML = "Loading...";
+
+      fetch(`/api/agents/conversations/${convoId}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.conversation) {
+          outputBox.innerHTML = `<pre>${JSON.stringify(data.conversation, null, 2)}</pre>`;
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "<strong>Unexpected response format.</strong>";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${err.message}`;
+      });
+
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    }
+  </script>
+</body>
+</html>

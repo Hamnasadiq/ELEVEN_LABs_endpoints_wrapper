@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Get Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f9d5ec, #e5c3f7); /* Soft light pink & purple */
+      padding: 40px;
+      text-align: center;
+      color: #5c3c7f;
+    }
+    .form-box {
+      display: inline-block;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 600px;
+      border: 2px solid #f3e1f9;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 14px;
+      border-radius: 8px;
+      border: 1px solid #d9c2e6;
+      font-size: 16px;
+    }
+    button {
+      background-color: #d79fdc; /* soft purple-pink */
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #c57bcc;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #fdf6fc;
+      padding: 18px;
+      border-radius: 10px;
+      margin-top: 22px;
+      font-size: 16px;
+      color: #4b2c5e;
+      border: 1px solid #ebd5f2;
+    }
+  </style>
+</head>
+<body>
+  <h2>Get Tool</h2>
+  <div class="form-box">
+    <input type="text" id="tool-id" placeholder="Enter Tool ID">
+    <button onclick="getTool()">Fetch Tool</button>
+    <div id="tool-response" class="response-box"></div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function getTool() {
+      const toolId = document.getElementById("tool-id").value;
+      const outputBox = document.getElementById("tool-response");
+
+      if (!toolId) {
+        outputBox.innerHTML = "<strong style='color:red;'>Please enter a Tool ID.</strong>";
+        return;
+      }
+
+      outputBox.innerHTML = "Fetching tool...";
+
+      fetch(`/api/agents/tools/${toolId}/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken")
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.tool) {
+          const t = data.tool;
+          outputBox.innerHTML = `
+            <strong>Tool ID:</strong> ${t.tool_id}<br>
+            <strong>Name:</strong> ${t.name}<br>
+            <strong>Description:</strong> ${t.description}<br>
+            <strong>Expects Response:</strong> ${t.expects_response}
+          `;
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "Unexpected response.";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${err.message}`;
+      });
+    }
+  </script>
+</body>
+</html>

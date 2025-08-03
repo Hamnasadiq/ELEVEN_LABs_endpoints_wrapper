@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Get Tool Dependent Agents</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f9d6e5, #e3c8f6);
+      padding: 40px;
+      text-align: center;
+      color: #593c77;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 600px;
+      border: 2px solid #eddcf7;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 14px;
+      border-radius: 8px;
+      border: 1px solid #d5c2e3;
+      font-size: 16px;
+    }
+    button {
+      background-color: #d194e1;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #b672c4;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #fbf3fc;
+      padding: 18px;
+      border-radius: 10px;
+      margin-top: 22px;
+      font-size: 16px;
+      color: #4b2c5e;
+      border: 1px solid #e9d7f3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Get Tool Dependent Agents</h2>
+  <div class="form-box">
+    <input type="text" id="tool-id" placeholder="Enter Tool ID">
+    <button onclick="fetchDependentAgents()">Fetch Agents</button>
+    <div id="agents-response" class="response-box"></div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function fetchDependentAgents() {
+      const toolId = document.getElementById("tool-id").value;
+      const outputBox = document.getElementById("agents-response");
+
+      if (!toolId) {
+        outputBox.innerHTML = "<strong style='color:red;'>Please enter a Tool ID.</strong>";
+        return;
+      }
+
+      outputBox.innerHTML = "Fetching dependent agents...";
+
+      fetch(`/tools/${toolId}/dependent-agents/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken")
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.result) {
+          const agents = data.result;
+          if (agents.length === 0) {
+            outputBox.innerHTML = "<strong>No agents found for this tool.</strong>";
+          } else {
+            outputBox.innerHTML = "<strong>Agents:</strong><br><ul>" + agents.map(agent => `
+              <li>
+                <strong>ID:</strong> ${agent.agent_id || "N/A"} <br>
+                <strong>Name:</strong> ${agent.name || "Unnamed"}
+              </li>
+            `).join('') + "</ul>";
+          }
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "Unexpected response.";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${err.message}`;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -69,11 +69,14 @@
   <h1>Conversation Endpoints</h1>
 
   <div class="grid">
-    <a href="/api/agents/conversations/" class="card">List Conversations</a>
-    <a href="/api/agents/conversations/example-id/" class="card">Get Conversation</a>
-    <a href="/api/agents/conversations/example-id/delete/" class="card">Delete Conversation</a>
-    <a href="/api/agents/conversations/example-id/audio/" class="card">Get Conversation Audio</a>
-    <a href="/api/agents/conversations/example-id/feedback/" class="card">Create Feedback</a>
+    <a href="/conversations/list-ui/" class="card">List Conversations</a>
+    <a href="/conversations/get-ui/" class="card">Get Conversation</a>
+    <a href="/api/agents/conversations/delete-ui/" class="card">Delete Conversation</a>
+
+    <a href="/conversations/audio-ui/" class="card">Get Conversation Audio</a>
+
+    <a href="/conversations/feedback-ui/" class="card">Create Feedback</a>
+
   </div>
 
   <a href="{% url 'dashboard' %}" class="back-link">⬅ Back to Dashboard</a>

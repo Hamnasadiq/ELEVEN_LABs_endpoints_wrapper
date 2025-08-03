@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Client Tool</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f9d6e5, #e3c8f6);
+      padding: 40px;
+      text-align: center;
+      color: #593c77;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 600px;
+      border: 2px solid #eddcf7;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 14px;
+      border-radius: 8px;
+      border: 1px solid #d5c2e3;
+      font-size: 16px;
+    }
+    button {
+      background-color: #d194e1;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #b672c4;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #fbf3fc;
+      padding: 18px;
+      border-radius: 10px;
+      margin-top: 22px;
+      font-size: 16px;
+      color: #4b2c5e;
+      border: 1px solid #e9d7f3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Create Client Tool</h2>
+  <div class="form-box">
+    <input type="text" id="name" placeholder="Tool Name">
+    <input type="text" id="description" placeholder="Tool Description">
+    <select id="expects-response">
+      <option value="false">Expects Response: False</option>
+      <option value="true">Expects Response: True</option>
+    </select>
+    <button onclick="createClientTool()">Create Tool</button>
+    <div id="create-response" class="response-box"></div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function createClientTool() {
+      const name = document.getElementById("name").value;
+      const description = document.getElementById("description").value;
+      const expectsResponse = document.getElementById("expects-response").value === "true";
+
+      const outputBox = document.getElementById("create-response");
+
+      if (!name || !description) {
+        outputBox.innerHTML = "<strong style='color:red;'>Please fill all fields.</strong>";
+        return;
+      }
+
+      outputBox.innerHTML = "Creating tool...";
+
+      fetch("/api/agents/tools/create-client/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+          name: name,
+          description: description,
+          expects_response: expectsResponse
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.result) {
+          outputBox.innerHTML = `<strong style='color:green;'>Tool created successfully!</strong><br>${JSON.stringify(data.result)}`;
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "Unexpected response.";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${err.message}`;
+      });
+    }
+  </script>
+</body>
+</html>

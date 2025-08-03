@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Get Conversation Audio</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #ffe5ec);
+      padding: 40px;
+      text-align: center;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #0288d1;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #01579b;
+    }
+    audio {
+      margin-top: 20px;
+      width: 100%;
+    }
+    .response-box {
+      margin-top: 20px;
+      font-weight: bold;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h2>Get Conversation Audio</h2>
+  <div class="form-box">
+    <input type="text" id="conversation-id" placeholder="Enter Conversation ID" />
+    <button onclick="fetchAudio()">Fetch Audio</button>
+    <div class="response-box" id="error-msg"></div>
+    <audio id="audio-player" controls style="display: none;"></audio>
+  </div>
+
+  <script>
+    function fetchAudio() {
+      const convoId = document.getElementById("conversation-id").value;
+      const audioPlayer = document.getElementById("audio-player");
+      const errorBox = document.getElementById("error-msg");
+
+      if (!convoId) {
+        errorBox.innerText = "Please enter a conversation ID.";
+        return;
+      }
+
+      errorBox.innerText = "Loading...";
+      fetch(`/api/agents/conversations/${convoId}/audio/`)
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(err => { throw err; });
+          }
+          return res.blob();
+        })
+        .then(blob => {
+          const audioUrl = URL.createObjectURL(blob);
+          audioPlayer.src = audioUrl;
+          audioPlayer.style.display = "block";
+          errorBox.innerText = "";
+        })
+        .catch(err => {
+          audioPlayer.style.display = "none";
+          errorBox.innerText = err.error || "Failed to load audio.";
+        });
+    }
+  </script>
+</body>
+</html>

@@ -69,12 +69,21 @@
   <h1>Tool Endpoints</h1>
 
   <div class="grid">
-    <a href="/api/agents/tools/list/" class="card">List Tools</a>
-    <a href="/api/agents/tools/example-id/" class="card">Get Tool</a>
-    <a href="/api/agents/tools/create-client/" class="card">Create Client Tool</a>
-    <a href="/api/agents/tools/example-id/update/" class="card">Update Client Tool</a>
-    <a href="/api/agents/tools/example-id/delete/" class="card">Delete Tool</a>
-    <a href="/api/agents/tools/example-id/dependent-agents/" class="card">Get Tool Dependent Agents</a>
+    <a href="/tools/list-ui/" class="card">List Tools</a>
+
+    <!-- ✅ This goes to your custom HTML UI -->
+  <a href="/tools/get-ui/" class="card">Get Tool</a>
+
+
+    <a href="/tools/create-ui/" class="card">Create Client Tool</a>
+    
+
+    <a href="/tools/update-ui/" class="card">Update Client Tool</a>
+
+    <a href="/tools/delete-ui/" class="card">Delete Tool</a>
+
+    <a href="/tools/dependent-agents-ui/" class="card">Get Tool Dependent Agents</a>
+
   </div>
 
   <a href="{% url 'dashboard' %}" class="back-link">⬅ Back to Dashboard</a>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Feedback</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f9d1d1, #d1f9ec);
+      padding: 40px;
+      text-align: center;
+    }
+
+    .form-box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #009688;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00695c;
+    }
+
+    .response-box {
+      text-align: left;
+      background-color: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 16px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>Submit Conversation Feedback</h2>
+  <div class="form-box">
+    <input type="text" id="conversation-id" placeholder="Enter Conversation ID">
+    <select id="feedback-type">
+      <option value="">Select Feedback</option>
+      <option value="like">👍 Like</option>
+      <option value="dislike">👎 Dislike</option>
+    </select>
+    <button onclick="submitFeedback()">Submit Feedback</button>
+    <div id="feedback-response" class="response-box"></div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function submitFeedback() {
+      const convoId = document.getElementById("conversation-id").value;
+      const feedback = document.getElementById("feedback-type").value;
+      const outputBox = document.getElementById("feedback-response");
+
+      if (!convoId || !feedback) {
+        outputBox.innerHTML = "<strong style='color:red;'>Please provide both Conversation ID and feedback type.</strong>";
+        return;
+      }
+
+      outputBox.innerHTML = "Submitting...";
+
+      fetch(`/api/agents/conversations/${convoId}/feedback/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({ feedback: feedback })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message) {
+          outputBox.innerHTML = `<strong style="color:green;">${data.message}</strong>`;
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "Unexpected response.";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style="color:red;">Error:</strong> ${err.message}`;
+      });
+    }
+  </script>
+</body>
+</html>

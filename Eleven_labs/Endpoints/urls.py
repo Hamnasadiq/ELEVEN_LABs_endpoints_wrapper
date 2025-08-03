@@ -7,9 +7,13 @@ from .views import (
     ListConversationsView,GetConversationView,DeleteConversationView,GetConversationAudioView,
     CreateConversationFeedbackView,ListToolsView,GetToolView,CreateClientToolView,UpdateClientToolView,
     DeleteToolView,GetToolDependentAgentsView,create_agent_ui,get_agent_ui,list_agents_ui,update_agent_ui,
-    delete_agent_ui,get_agent_link_ui,duplicate_agent_ui,simulate_conversation_ui
+    delete_agent_ui,get_agent_link_ui,duplicate_agent_ui,simulate_conversation_ui,simulate_conversation_stream_ui,
+    list_conversations_ui,get_conversation_ui,delete_conversation_ui,get_conversation_audio_ui,
 )
-from .views import dashboard,agents_page,conversations_page,tools_page
+from .views import ( 
+    dashboard,agents_page,conversations_page,tools_page,create_feedback_ui,list_tools_ui,
+get_tool_ui,create_client_tool_ui,update_client_tool_ui,delete_tool_ui,get_tool_dependent_agents_ui
+)
 
 
 
@@ -36,6 +40,43 @@ urlpatterns = [
     path('api/agents/<str:agent_id>/duplicate/', DuplicateAgentView.as_view(), name='duplicate_agent'),
     path("agents/simulate-ui/", simulate_conversation_ui, name="simulate_agent_ui"),
     path("api/agents/<str:agent_id>/simulate/", SimulateConversationView.as_view(), name="simulate_agent"),
+   # UI page route
+    path('simulate/stream/ui/', simulate_conversation_stream_ui, name='simulate_conversation_stream_ui'),
+
+    # API route with <agent_id>
+    path('api/agents/<str:agent_id>/simulate/stream/', SimulateConversationStreamView.as_view(), name='simulate_conversation_stream_api'),
+    #conversation
+    path("conversations/list-ui/", list_conversations_ui, name="list-conversations-ui"),
+    path("conversations/list/", ListConversationsView.as_view(), name="list-conversations-api"),
+    path("conversations/get-ui/", get_conversation_ui, name="get-conversation-ui"),
+    path("api/agents/conversations/<str:conversation_id>/", GetConversationView.as_view(), name="get-conversation-api"),
+    path("conversations/delete-ui/", delete_conversation_ui, name="delete-conversation-ui"),
+    path("conversations/<str:conversation_id>/delete/", DeleteConversationView.as_view(), name="delete-conversation-api"),
+    path("conversations/audio-ui/", get_conversation_audio_ui, name="get-conversation-audio-ui"),
+    path("conversations/<str:conversation_id>/audio/", GetConversationAudioView.as_view(), name="get-conversation-audio-api"),
+    path("conversations/<str:conversation_id>/feedback/", CreateConversationFeedbackView.as_view(), name="create-feedback-api"),
+    path("conversations/feedback-ui/", create_feedback_ui, name="create-feedback-ui"),
+   
+    # ✅ 1. UI Routes — STATIC FIRST (DO NOT depend on <tool_id>)
+    path("tools/list-ui/", list_tools_ui, name="list-tools-ui"),
+    path("tools/get-ui/", get_tool_ui, name="get-tool-ui"),
+    path("tools/create-ui/", create_client_tool_ui, name="create-client-tool-ui"),
+    path("tools/update-ui/", update_client_tool_ui, name="update-client-tool-ui"),
+    path("tools/delete-ui/", delete_tool_ui, name="delete-tool-ui"),
+    path("tools/dependent-agents-ui/", get_tool_dependent_agents_ui, name="get-tool-dependent-agents-ui"),
+
+    # ✅ 2. API Routes — SPECIFIC patterns (include action keyword in path)
+    path("tools/list/", ListToolsView.as_view(), name="list-tools-api"),
+    path("tools/create-client/", CreateClientToolView.as_view(), name="create-client-tool-api"),
+    path("tools/<str:tool_id>/update/", UpdateClientToolView.as_view(), name="update-client-tool-api"),
+    path("tools/<str:tool_id>/delete/", DeleteToolView.as_view(), name="delete-tool-api"),
+    path("tools/<str:tool_id>/dependent-agents/", GetToolDependentAgentsView.as_view(), name="get-tool-dependent-agents-api"),
+
+    # 🚨 3. Wildcard Route — LAST to prevent it from catching specific routes above
+    path("tools/<str:tool_id>/", GetToolView.as_view(), name="get-tool-api"),
+
+
+
 
 
 

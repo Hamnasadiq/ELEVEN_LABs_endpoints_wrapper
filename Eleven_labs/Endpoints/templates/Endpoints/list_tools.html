@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>List Tools</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #fce3ec, #e0f7fa);
+      padding: 40px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #4a007e;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #004d40;
+    }
+
+    .response-box {
+      margin-top: 30px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+      font-family: monospace;
+      font-size: 15px;
+      color: #333;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h2>List Tools</h2>
+  <button onclick="fetchTools()">Fetch Tools</button>
+
+  <div id="tools-response" class="response-box"></div>
+
+  <script>
+    function fetchTools() {
+      const box = document.getElementById("tools-response");
+      box.innerHTML = "Loading...";
+
+      fetch("/api/agents/tools/list/")
+        .then(res => res.json())
+        .then(data => {
+          if (data.tools) {
+            box.innerHTML = JSON.stringify(data.tools, null, 2);
+          } else if (data.error) {
+            box.innerHTML = `<strong style='color:red;'>Error:</strong> ${data.error}`;
+          } else {
+            box.innerHTML = "Unexpected response.";
+          }
+        })
+        .catch(err => {
+          box.innerHTML = `<strong style='color:red;'>Error:</strong> ${err.message}`;
+        });
+    }
+  </script>
+</body>
+</html>

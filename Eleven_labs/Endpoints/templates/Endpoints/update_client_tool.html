@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Update Client Tool</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f3c6f4, #ecd4f6);
+      padding: 40px;
+      text-align: center;
+      color: #4c2d64;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 600px;
+      border: 2px solid #e2bdf4;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 14px;
+      border-radius: 8px;
+      border: 1px solid #d2b1e8;
+      font-size: 16px;
+    }
+    button {
+      background-color: #c180e1;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #a25bc4;
+    }
+    .response-box {
+      text-align: left;
+      background-color: #fef6ff;
+      padding: 18px;
+      border-radius: 10px;
+      margin-top: 22px;
+      font-size: 16px;
+      color: #512e6f;
+      border: 1px solid #e6c9f3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Update Client Tool</h2>
+  <div class="form-box">
+    <input type="text" id="tool-id" placeholder="Enter Tool ID to update">
+    <input type="text" id="name" placeholder="New Tool Name">
+    <input type="text" id="description" placeholder="New Tool Description">
+    <select id="expects-response">
+      <option value="false">Expects Response: False</option>
+      <option value="true">Expects Response: True</option>
+    </select>
+    <button onclick="updateClientTool()">Update Tool</button>
+    <div id="update-response" class="response-box"></div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function updateClientTool() {
+      const toolId = document.getElementById("tool-id").value;
+      const name = document.getElementById("name").value;
+      const description = document.getElementById("description").value;
+      const expectsResponse = document.getElementById("expects-response").value === "true";
+
+      const outputBox = document.getElementById("update-response");
+
+      if (!toolId || !name || !description) {
+        outputBox.innerHTML = "<strong style='color:red;'>Please fill all fields.</strong>";
+        return;
+      }
+
+      outputBox.innerHTML = "Updating tool...";
+
+      fetch(`/api/agents/tools/${toolId}/update/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+          name: name,
+          description: description,
+          expects_response: expectsResponse
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.result) {
+          outputBox.innerHTML = `<strong style='color:green;'>Tool updated successfully!</strong><br>${JSON.stringify(data.result)}`;
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "Unexpected response.";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${err.message}`;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Delete Tool</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #ffe0f0, #e4c3f5);
+      padding: 40px;
+      text-align: center;
+      color: #5d3475;
+    }
+    .form-box {
+      display: inline-block;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 600px;
+      border: 2px solid #eacdee;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 14px;
+      border-radius: 8px;
+      border: 1px solid #ccb9e0;
+      font-size: 16px;
+    }
+    button {
+      background-color: #d46f9d;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #b44c7d;
+    }
+    .response-box {
+      background-color: #f7f0f9;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      color: #432d54;
+      border: 1px solid #e0caeb;
+    }
+  </style>
+</head>
+<body>
+  <h2>Delete Tool</h2>
+  <div class="form-box">
+    <input type="text" id="tool-id" placeholder="Enter Tool ID to Delete" />
+    <button onclick="deleteTool()">Delete Tool</button>
+    <div id="delete-response" class="response-box"></div>
+  </div>
+
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function deleteTool() {
+      const toolId = document.getElementById("tool-id").value;
+      const outputBox = document.getElementById("delete-response");
+
+      if (!toolId) {
+        outputBox.innerHTML = "<strong style='color:red;'>Please enter a Tool ID.</strong>";
+        return;
+      }
+
+      outputBox.innerHTML = "Deleting tool...";
+
+      fetch(`/api/agents/tools/${toolId}/delete/`, {
+        method: "DELETE",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken")
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.message) {
+          outputBox.innerHTML = `<strong style='color:green;'>${data.message}</strong>`;
+        } else if (data.error) {
+          outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${data.error}`;
+        } else {
+          outputBox.innerHTML = "Unexpected response.";
+        }
+      })
+      .catch(err => {
+        outputBox.innerHTML = `<strong style='color:red;'>Error:</strong> ${err.message}`;
+      });
+    }
+  </script>
+</body>
+</html>
